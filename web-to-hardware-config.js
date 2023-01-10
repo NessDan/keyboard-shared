@@ -1,6 +1,6 @@
 import { keyEventCodeToC } from "../constants/enums.js";
 import angleToPoint from "../constants/angles.js";
-import { connectAndSendDataToAdapter } from "./sendToDevice.js";
+import { connectAndSendDataToAdapter } from "./send-to-device.js";
 
 const angles = {
   0: { x: 128, y: 0 },
