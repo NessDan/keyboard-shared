@@ -1,4 +1,4 @@
-const saveProfileToJSON = (mappingsToDownload) => {
+export const saveProfileToJSON = (mappingsToDownload) => {
   // https://stackoverflow.com/a/34156339/231730
   function download(content, fileName, contentType) {
     var a = document.createElement("a");
