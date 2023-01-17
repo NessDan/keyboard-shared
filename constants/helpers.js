@@ -1,4 +1,29 @@
-export const humanReadableEventKeyCode = (eventCode) => {
+export const getUserFriendlyText = (settingValue) => {
+  let humanReadableSocd = socdToHumanReadable(settingValue);
+
+  if (humanReadableSocd) return humanReadableSocd;
+
+  return humanReadableEventKeyCode(settingValue);
+};
+
+const socdToHumanReadable = (socd) => {
+  switch (socd) {
+    case "lastPressed":
+      return "Last Pressed";
+    case "neutral":
+      return "Neutral";
+    case "preferUp":
+      return "Prefer Up";
+    case "preferDown":
+      return "Prefer Down";
+    case "preferRight":
+      return "Prefer Right";
+    case "preferLeft":
+      return "Prefer Left";
+  }
+};
+
+const humanReadableEventKeyCode = (eventCode) => {
   if (eventCode.startsWith("Digit")) {
     return eventCode.slice(-1);
   } else if (eventCode.startsWith("Numpad")) {
