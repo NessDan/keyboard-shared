@@ -28,20 +28,30 @@ export const DPadMappings = {
   7: "↖️",
   8: "⏺️",
 };
-export const BtnY = "Y";
-export const BtnB = "B";
-export const BtnA = "A";
-export const BtnX = "X";
-export const BtnL = "L";
-export const BtnR = "R";
-export const BtnZL = "ZL";
-export const BtnZR = "ZR";
-export const BtnMinus = "MINUS";
-export const BtnPlus = "PLUS";
-export const BtnHome = "HOME";
-export const BtnCapture = "CAPTURE";
-export const BtnLClick = "LCLICK";
-export const BtnRClick = "RCLICK";
+
+export const ButtonValues = {
+  Y: "Y",
+  B: "B",
+  A: "A",
+  X: "X",
+  L: "L",
+  R: "R",
+  ZL: "ZL",
+  ZR: "ZR",
+  Select: "MINUS",
+  Start: "PLUS",
+  Home: "HOME",
+  Share: "CAPTURE",
+  LClick: "LCLICK",
+  RClick: "RCLICK",
+};
+
+export const DirectionValues = {
+  Up: "UP",
+  Down: "DOWN",
+  Left: "LEFT",
+  Right: "RIGHT",
+};
 
 // export const DPadCenter = 8;
 // export const DPadUp = 0;
