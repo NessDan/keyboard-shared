@@ -1,5 +1,4 @@
 export const actionsToStrings = {
-  lstickdir: "Left Stick",
   lstick: "Left Stick",
   rstick: "Right Stick",
   button: "Button",
@@ -8,19 +7,17 @@ export const actionsToStrings = {
 
 // ENUMS
 export const LStick = "lstick";
-export const LStickDir = "lstickdir";
 export const RStick = "rstick";
 export const Button = "button";
 export const DPad = "dpad";
-export const actionOrders = [LStickDir, LStick, RStick, Button, DPad];
+export const actionOrders = [LStick, RStick, Button, DPad];
 export const actionSortOrder = {
-  [LStickDir]: 0,
-  [LStick]: 1,
-  [RStick]: 2,
-  [Button]: 3,
-  [DPad]: 4,
+  [LStick]: 0,
+  [RStick]: 1,
+  [Button]: 2,
+  [DPad]: 3,
 };
-export const DPadToEmoji = {
+export const DPadMappings = {
   0: "⬆️",
   1: "↗️",
   2: "➡️",
@@ -54,13 +51,6 @@ export const DirectionValues = {
   Down: "DOWN",
   Left: "LEFT",
   Right: "RIGHT",
-};
-
-export const directionToEmoji = {
-  up: "⬆️",
-  down: "⬇️",
-  left: "⬅️",
-  right: "➡️",
 };
 
 // export const DPadCenter = 8;
