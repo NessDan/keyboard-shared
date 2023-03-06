@@ -140,7 +140,15 @@ const generateHardwareConfig = (hardwareConfigs, mapping) => {
       matchedMapping = hardwareConfigs[matchedMappingIdx];
     }
 
-    if (webMapping.inherit) {
+    // As we build the tree up, sometimes in-between keys don't have actions,
+    // e.g.:
+    // "W" -> "D" -> "Q" = Right
+    // "W" = Up
+    // When pressing "W" -> "D", there's no action so the left-stick goes null.
+    // When in reality, we'd expect it to inherit the previous action ("Up").
+    // Therefore, we need to set the "inherit" flag to true so that we
+    // can inherit the previous action as we work our way up to the top.
+    if (!matchedMapping.actions) {
       matchedMapping.inherit = true;
     }
 
