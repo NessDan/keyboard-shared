@@ -149,7 +149,11 @@ const generateHardwareConfig = (hardwareConfigs, mapping) => {
     // Therefore, we need to set the "inherit" flag to true so that we
     // can inherit the previous action as we work our way up to the top.
     if (!matchedMapping.actions) {
-      matchedMapping.inherit = true;
+      if (currentDepth > 0) {
+        // Can't inherit from nothing!
+        // We'll have to remove this later on if we add an action.
+        matchedMapping.inherit = true;
+      }
     }
 
     // We've still got some keys to go!
@@ -176,6 +180,10 @@ const generateHardwareConfig = (hardwareConfigs, mapping) => {
         webMapping.action
       );
       matchedMapping.actions = [hardwareAction];
+
+      if (matchedMapping.inherit) {
+        delete matchedMapping.inherit;
+      }
     }
   };
 
