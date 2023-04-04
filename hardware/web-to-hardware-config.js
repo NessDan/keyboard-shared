@@ -1,50 +1,6 @@
 import { keyEventCodeToC } from "../constants/enums.js";
-import angleToPoint from "../constants/angles.js";
+import { angleToPoint } from "../constants/angles.js";
 import { connectAndSendDataToAdapter } from "./send-to-device.js";
-
-const angles = {
-  0: { x: 128, y: 0 },
-  15: { x: 170, y: 0 },
-  30: { x: 213, y: 0 },
-  45: { x: 255, y: 0 },
-  60: { x: 255, y: 43 },
-  75: { x: 255, y: 85 },
-  90: { x: 255, y: 128 },
-  105: { x: 255, y: 170 },
-  120: { x: 255, y: 213 },
-  135: { x: 255, y: 255 },
-  150: { x: 213, y: 255 },
-  165: { x: 170, y: 255 },
-  180: { x: 128, y: 255 },
-  195: { x: 85, y: 255 },
-  210: { x: 43, y: 255 },
-  225: { x: 0, y: 255 },
-  240: { x: 0, y: 213 },
-  255: { x: 0, y: 170 },
-  270: { x: 0, y: 128 },
-  285: { x: 0, y: 85 },
-  300: { x: 0, y: 43 },
-  315: { x: 0, y: 0 },
-  330: { x: 43, y: 0 },
-  345: { x: 85, y: 0 },
-  360: { x: 128, y: 0 },
-};
-
-let anglesSlower = {};
-for (const angle in angles) {
-  anglesSlower[angle] = {
-    x: Math.round(
-      angles[angle].x > 250
-        ? (angles[angle].x - 128) * 0.7 + 129
-        : (angles[angle].x - 128) * 0.7 + 128
-    ),
-    y: Math.round(
-      angles[angle].y > 250
-        ? (angles[angle].y - 128) * 0.7 + 129
-        : (angles[angle].y - 128) * 0.7 + 128
-    ),
-  };
-}
 
 let hardwareConfigs = [];
 
@@ -198,8 +154,16 @@ const generateHardwareConfig = (hardwareConfigs, mapping) => {
 const angleDistanceConverter = (angle, distance) => {
   // Takes an angle in degrees (e.g. 0, 90, 180, 270) and a distance (0 - 100) and
   // returns the x and y values of the controller stick.
-  const x = Math.round((angleToPoint[angle].x * distance) / 100) + 128;
-  const y = Math.round((angleToPoint[angle].y * distance) / 100) + 128;
+  let x = (angleToPoint[angle].x * distance) / 100;
+  let y = (angleToPoint[angle].y * distance) / 100;
+
+  // Because the controller uses values 0 - 255 on hardware (int8_t),
+  // we need to adjust the x and y values.
+  x += 127.5;
+  y += 127.5;
+
+  x = Math.round(x);
+  y = Math.round(y);
 
   return { x, y };
 };
