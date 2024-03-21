@@ -2,7 +2,10 @@ function padEnd(array, minLength, fillValue = undefined) {
   return Object.assign(new Array(minLength).fill(fillValue), array);
 }
 
-export const connectAndSendDataToAdapter = async (dataToFlash) => {
+export const connectAndSendDataToAdapter = async (
+  dataToFlash,
+  profileNumber
+) => {
   const maxConfigSize = 8192;
   const decoder = new TextDecoder();
   let device;
@@ -21,11 +24,12 @@ export const connectAndSendDataToAdapter = async (dataToFlash) => {
 
   const config = new Uint8Array(padEnd(dataToFlash, maxConfigSize, 0));
   console.log(config);
+  console.log(profileNumber);
   const prepareForData = await device.controlTransferOut({
     requestType: "vendor",
     recipient: "endpoint",
     request: 0x09,
-    value: 0x01,
+    value: profileNumber || 0x01,
     index: 0x04,
   }); // We just told the adapter to expect the config to come in.
 
