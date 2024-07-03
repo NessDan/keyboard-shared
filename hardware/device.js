@@ -38,44 +38,66 @@ export const connectToAdapter = async () => {
 };
 
 export const getMaxProfileSize = async (device) => {
-  let maxProfileCount = await device.controlTransferIn(
-    {
-      requestType: "vendor",
-      recipient: "device",
-      index: 0x00,
-      request: kggVendorRequestId.sendProfile,
-      value: kggVendorSendProfileValues.sendProfileMaxSize,
-    },
-    32
-  );
+  // The below will fail if the adapter firmware is not up to date.
+  // In this case, we'll default to the old size of 8192
+  try {
+    let maxProfileSize = await device.controlTransferIn(
+      {
+        requestType: "vendor",
+        recipient: "device",
+        index: 0x00,
+        request: kggVendorRequestId.sendProfile,
+        value: kggVendorSendProfileValues.sendProfileMaxSize,
+      },
+      32
+    );
 
-  maxProfileCount = maxProfileCount.data.getUint16(0, true);
+    maxProfileSize = maxProfileSize.data.getUint16(0, true);
 
-  return maxProfileCount;
+    console.log("Max profile size", maxProfileSize);
+
+    return maxProfileSize;
+  } catch (error) {
+    console.error(
+      "Error getting max profile size. Must be older firmware?",
+      error
+    );
+    return 8192;
+  }
 };
 
 export const getMaxProfileCount = async (device) => {
-  let maxProfileCount = await device.controlTransferIn(
-    {
-      requestType: "vendor",
-      recipient: "device",
-      index: 0x00,
-      request: kggVendorRequestId.sendProfile,
-      value: kggVendorSendProfileValues.sendProfileMaxCount,
-    },
-    32
-  );
+  // The below will fail if the adapter firmware is not up to date.
+  // In this case, we'll default to the old size of 1
+  try {
+    let maxProfileCount = await device.controlTransferIn(
+      {
+        requestType: "vendor",
+        recipient: "device",
+        index: 0x00,
+        request: kggVendorRequestId.sendProfile,
+        value: kggVendorSendProfileValues.sendProfileMaxCount,
+      },
+      32
+    );
 
-  maxProfileCount = maxProfileCount.data.getUint8(0);
+    maxProfileCount = maxProfileCount.data.getUint8(0);
 
-  return maxProfileCount;
+    return maxProfileCount;
+  } catch (error) {
+    console.error(
+      "Error getting max profile count. Must be older firmware?",
+      error
+    );
+    return 1;
+  }
 };
 
 export const sendDataToAdapter = async (device, dataToFlash, profileNumber) => {
-  const maxConfigSize = 8192;
+  const maxProfileSize = await getMaxProfileSize(device);
   const decoder = new TextDecoder();
 
-  const config = new Uint8Array(padEnd(dataToFlash, maxConfigSize, 0));
+  const config = new Uint8Array(padEnd(dataToFlash, maxProfileSize, 0));
   console.log(config);
   console.log(profileNumber);
 
