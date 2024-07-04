@@ -30,12 +30,12 @@ export const connectToAdapter = async () => {
       device = await navigator.usb.requestDevice({
         filters: [{ vendorId: 0x0f0d }],
       });
+    }
 
-      if (device) {
-        await device.open(); // Begin a session.
-        await device.selectConfiguration(1); // Select configuration #1 for the device (1-indexed, so first config is 1).
-        await device.claimInterface(1); // Request exclusive control over second interface (0-indexed, so 2nd interface is 1).
-      }
+    if (!device.opened) {
+      await device.open(); // Begin a session.
+      await device.selectConfiguration(1); // Select configuration #1 for the device (1-indexed, so first config is 1).
+      await device.claimInterface(1); // Request exclusive control over second interface (0-indexed, so 2nd interface is 1).
     }
 
     return device;
