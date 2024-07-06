@@ -1,4 +1,4 @@
-function padEnd(array, minLength, fillValue = undefined) {
+function padEnd(array, minLength, fillValue = 0xff) {
   return Object.assign(new Array(minLength).fill(fillValue), array);
 }
 
@@ -104,7 +104,7 @@ export const sendDataToAdapter = async (device, dataToFlash, profileNumber) => {
   const maxProfileSize = await getMaxProfileSize(device);
   const decoder = new TextDecoder();
 
-  const config = new Uint8Array(padEnd(dataToFlash, maxProfileSize, 0));
+  const config = new Uint8Array(padEnd(dataToFlash, maxProfileSize));
   console.log(config);
   console.log(profileNumber);
 
