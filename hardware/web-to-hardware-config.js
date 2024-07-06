@@ -199,7 +199,7 @@ const convertWebActionToHardwareAction = (action) => {
   }
 };
 
-export const mappingsToBinary = (mappings, profileNumber) => {
+export const mappingsToBinary = (mappings, profileIdx) => {
   console.log("mappingsToBinary", mappings);
 
   let lastProfileSize = 0;
@@ -221,7 +221,7 @@ export const mappingsToBinary = (mappings, profileNumber) => {
 
     console.log("dataBlob", dataToFlash);
 
-    connectAndSendDataToAdapter(dataToFlash, profileNumber);
+    connectAndSendDataToAdapter(dataToFlash, profileIdx);
 
     hardwareConfigs = [];
 

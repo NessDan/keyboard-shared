@@ -44,6 +44,33 @@ export const connectToAdapter = async () => {
   }
 };
 
+export const getMajorVersion = async (device) => {
+  try {
+    let majorVersion = await device.controlTransferIn(
+      {
+        requestType: "vendor",
+        recipient: "device",
+        index: 0x00,
+        request: kggVendorRequestId.sendVersion,
+        value: kggVendorSendVersionValues.sendVersionMajor,
+      },
+      32
+    );
+
+    majorVersion = majorVersion.data.getUint8(0);
+
+    console.log("Major version", majorVersion);
+
+    return majorVersion;
+  } catch (error) {
+    console.error(
+      "Error getting major version. Must be older firmware?",
+      error
+    );
+    return 0;
+  }
+};
+
 export const getMaxProfileSize = async (device) => {
   // The below will fail if the adapter firmware is not up to date.
   // In this case, we'll default to the old size of 8192
@@ -100,20 +127,26 @@ export const getMaxProfileCount = async (device) => {
   }
 };
 
-export const sendDataToAdapter = async (device, dataToFlash, profileNumber) => {
+export const sendDataToAdapter = async (device, dataToFlash, profileIdx) => {
   const maxProfileSize = await getMaxProfileSize(device);
   const decoder = new TextDecoder();
+  const majorVersion = await getMajorVersion(device);
+  const profileIdxToSend = majorVersion === 0 ? 0x01 : profileIdx; // Fallback for old firmware
 
   const config = new Uint8Array(padEnd(dataToFlash, maxProfileSize));
   console.log(config);
-  console.log(profileNumber);
+  console.log(
+    "Profile Index (and index to send):",
+    profileIdx,
+    profileIdxToSend
+  );
 
   const prepareForData = await device.controlTransferOut({
     requestType: "vendor",
     recipient: "endpoint",
     index: 0x04,
     request: kggVendorRequestId.receiveProfile,
-    value: profileNumber || 0x01,
+    value: profileIdxToSend,
   }); // We just told the adapter to expect the config to come in.
 
   console.log("Done telling the adapter to expect the config.", prepareForData);
@@ -124,25 +157,11 @@ export const sendDataToAdapter = async (device, dataToFlash, profileNumber) => {
   console.log("Received: " + decoder.decode(configSendRes.data));
 };
 
-export const connectAndSendDataToAdapter = async (
-  dataToFlash,
-  profileNumber
-) => {
+export const connectAndSendDataToAdapter = async (dataToFlash, profileIdx) => {
   try {
     const device = await connectToAdapter();
 
-    const maxProfileCount = await getMaxProfileCount(device);
-    let profileToProgram = profileNumber;
-
-    if (maxProfileCount === 0) {
-      // TODO: maxProfileCount may return something nasty if the adapter doesn't respond correctly. Test what it actually returns.
-      profileToProgram = 1;
-    } else if (maxProfileCount < profileNumber) {
-      console.error("Profile number is too high for this device.");
-      return;
-    }
-
-    await sendDataToAdapter(device, dataToFlash, profileToProgram);
+    await sendDataToAdapter(device, dataToFlash, profileIdx);
   } catch (error) {
     console.error("Error in connectAndSendDataToAdapter", error);
   }
