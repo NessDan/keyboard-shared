@@ -21,14 +21,17 @@ const kggVendorSendProfileValues = {
   sendProfileMaxSize: 0x01,
 };
 
+// 0x0f0d is for Switch, 0x0738 is for PS4
+const kggVendorIds = [0x0f0d, 0x0738];
+
 export const connectToAdapter = async () => {
   try {
     const devices = await navigator.usb.getDevices();
-    let device = devices.find((d) => d.vendorId === 0x0f0d);
+    let device = devices.find((d) => kggVendorIds.includes(d.vendorId));
 
     if (!device) {
       device = await navigator.usb.requestDevice({
-        filters: [{ vendorId: 0x0f0d }],
+        filters: kggVendorIds.map((id) => ({ vendorId: id })),
       });
     }
 
@@ -41,6 +44,36 @@ export const connectToAdapter = async () => {
     return device;
   } catch (error) {
     console.error("Error connecting to device.", error);
+  }
+};
+
+export const getVendorOutEndpoint = async (device) => {
+  try {
+    const vendorInterface = device.configuration.interfaces.find((iface) => {
+      const vendorInterfaceClass = 0xff;
+      if (iface.alternate.interfaceClass === vendorInterfaceClass) {
+        return iface;
+      }
+    });
+
+    if (!vendorInterface) {
+      throw new Error("No vendor interface found.");
+    }
+
+    const endpoint = vendorInterface.alternate.endpoints.find((endpoint) => {
+      return endpoint.direction === "out";
+    });
+
+    if (!endpoint) {
+      throw new Error("No vendor out endpoint found.");
+    }
+
+    console.log("Vendor out endpoint", endpoint);
+
+    return endpoint.endpointNumber;
+  } catch (error) {
+    console.error("Error getting vendor out endpoint.", error);
+    return 4; // First vendor out endpoint released.
   }
 };
 
@@ -131,6 +164,7 @@ export const sendDataToAdapter = async (device, dataToFlash, profileIdx) => {
   const maxProfileSize = await getMaxProfileSize(device);
   const decoder = new TextDecoder();
   const majorVersion = await getMajorVersion(device);
+  const vendorOutEndpoint = await getVendorOutEndpoint(device);
   const profileIdxToSend = majorVersion === 0 ? 0x01 : profileIdx; // Fallback for old firmware
 
   const config = new Uint8Array(padEnd(dataToFlash, maxProfileSize));
@@ -144,14 +178,17 @@ export const sendDataToAdapter = async (device, dataToFlash, profileIdx) => {
   const prepareForData = await device.controlTransferOut({
     requestType: "vendor",
     recipient: "endpoint",
-    index: 0x04,
+    index: vendorOutEndpoint,
     request: kggVendorRequestId.receiveProfile,
     value: profileIdxToSend,
   }); // We just told the adapter to expect the config to come in.
 
   console.log("Done telling the adapter to expect the config.", prepareForData);
 
-  const configSendRes = await device.transferOut(4, config.buffer);
+  const configSendRes = await device.transferOut(
+    vendorOutEndpoint,
+    config.buffer
+  );
 
   console.log("Sent config!", configSendRes);
   console.log("Received: " + decoder.decode(configSendRes.data));
