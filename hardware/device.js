@@ -21,6 +21,14 @@ const kggVendorSendProfileValues = {
   sendProfileMaxSize: 0x01,
 };
 
+// classCode 0xff keeps older configurable firmware visible while excluding
+// genuine console pads that share these vendor/product identities.
+const kggChooserFilters = [
+  { vendorId: 0x0403, productId: 0x68e0 },
+  { vendorId: 0x0f0d, productId: 0x00c1, classCode: 0xff },
+  { vendorId: 0x0738, productId: 0x8480, classCode: 0xff },
+];
+
 // 0x0f0d is for Switch, 0x0738 is for PS4
 const kggVendorIds = [0x0f0d, 0x0738];
 
@@ -31,7 +39,7 @@ export const connectToAdapter = async () => {
 
     if (!device) {
       device = await navigator.usb.requestDevice({
-        filters: kggVendorIds.map((id) => ({ vendorId: id })),
+        filters: kggChooserFilters,
       });
     }
 
