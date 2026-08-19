@@ -29,13 +29,29 @@ const kggChooserFilters = [
   { vendorId: 0x0738, productId: 0x8480, classCode: 0xff },
 ];
 
-// 0x0f0d is for Switch, 0x0738 is for PS4
-const kggVendorIds = [0x0f0d, 0x0738];
+const hasSupportedIdentity = (device) =>
+  kggChooserFilters.some(
+    ({ vendorId, productId }) =>
+      device.vendorId === vendorId && device.productId === productId
+  );
+
+const findVendorInterface = (configuration) =>
+  configuration?.interfaces.find(
+    (iface) =>
+      iface.alternate.interfaceClass === 0xff &&
+      iface.alternate.endpoints.some((endpoint) => endpoint.direction === "out")
+  );
+
+const isConfigurableEdgeguard = (device) =>
+  hasSupportedIdentity(device) &&
+  device.configurations.some((configuration) =>
+    findVendorInterface(configuration)
+  );
 
 export const connectToAdapter = async () => {
   try {
     const devices = await navigator.usb.getDevices();
-    let device = devices.find((d) => kggVendorIds.includes(d.vendorId));
+    let device = devices.find(isConfigurableEdgeguard);
 
     if (!device) {
       device = await navigator.usb.requestDevice({
@@ -43,11 +59,22 @@ export const connectToAdapter = async () => {
       });
     }
 
-    if (!device.opened) {
-      await device.open(); // Begin a session.
-      await device.selectConfiguration(1); // Select configuration #1 for the device (1-indexed, so first config is 1).
-      await device.claimInterface(1); // Request exclusive control over second interface (0-indexed, so 2nd interface is 1).
+    const vendorConfiguration = device.configurations.find((configuration) =>
+      findVendorInterface(configuration)
+    );
+    if (!vendorConfiguration) throw new Error("No vendor interface found.");
+
+    if (!device.opened) await device.open();
+    if (
+      device.configuration?.configurationValue !==
+      vendorConfiguration.configurationValue
+    ) {
+      await device.selectConfiguration(vendorConfiguration.configurationValue);
     }
+
+    const vendorInterface = findVendorInterface(device.configuration);
+    if (!vendorInterface) throw new Error("No vendor interface found.");
+    await device.claimInterface(vendorInterface.interfaceNumber);
 
     return device;
   } catch (error) {
